@@ -1,0 +1,35 @@
+{
+  "name": "chat-application-backend",
+  "version": "1.0.0",
+  "description": "A scalable and efficient backend for a realtime chat application built using Node.js, WebSockets, and a database for message storage. This backend will support user authentication, message delivery, and online status tracking.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Programming-Sai/Chat-Application-Backend.git"
+  },
+  "keywords": [],
+  "author": "Programming-Sai",
+  "type": "module",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Programming-Sai/Chat-Application-Backend/issues"
+  },
+  "homepage": "https://github.com/Programming-Sai/Chat-Application-Backend#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.6.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
