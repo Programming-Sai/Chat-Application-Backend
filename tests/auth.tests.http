@@ -1,0 +1,39 @@
+@BASE_URL = http://localhost:5000
+@JWT_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummyPayload.dummySignature
+
+### Signup a new user
+POST {{BASE_URL}}/api/auth/signup
+Content-Type: application/json
+
+{
+    "fullName": "Test User",
+    "email": "testuser@example.com",
+    "password": "Test@123"
+}
+
+### Signin an existing user
+POST {{BASE_URL}}/api/auth/signin
+Content-Type: application/json
+
+{
+    "email": "testuser@example.com",
+    "password": "Test@123"
+}
+
+### Check authenticated user
+GET {{BASE_URL}}/api/auth/check
+Cookie: jwt={{JWT_TOKEN}}
+
+### Logout user
+POST {{BASE_URL}}/api/auth/signout
+Cookie: jwt={{JWT_TOKEN}}
+
+
+### Update profile picture
+PUT {{BASE_URL}}/api/auth/update-profile-pic
+Content-Type: application/json
+Cookie: jwt={{JWT_TOKEN}}
+
+{
+    "profilePic": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCRTXYXoGjgoZZSxVP2EwvTj8EXkSOlzJeDw&s"
+}
