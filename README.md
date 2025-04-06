@@ -15,10 +15,13 @@ This is the backend for a real-time chat application built using **Node.js, Expr
 ### Installation
 
 1. Clone the repository:
+
    ```sh
-   git clone https://github.com/Programming-Sai/Chat-Application-Backend.git
+   git clone -b postgres-db-swap https://github.com/Programming-Sai/Chat-Application-Backend.git
+
    cd Chat-Application-Backend
    ```
+
 2. Install dependencies:
    ```sh
    npm install
