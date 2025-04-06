@@ -1,5 +1,6 @@
 import  jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
+import pool from "../lib/db.js"; 
+
 
 export const protectedRoute= async (req, res, next) => {
     try {
@@ -17,15 +18,18 @@ export const protectedRoute= async (req, res, next) => {
             return res.status(401).json({ message: "Unauthorised - Invalid Token"});
         }
 
-        const user = await User.findById(decoded.userId).select("-password");
+        // Replace MongoDB's User.findById with a SQL query.
+        // Selecting specific columns to exclude the password.
+        const query = `SELECT id, full_name, email, profile_pic FROM Users WHERE id = $1`;
+        const { rows } = await pool.query(query, [decoded.userId]);
+        const user = rows[0];
 
-        if (!user){
-            return res.status(404).json({ message: "User Not Found"});
+        if (!user) {
+            return res.status(404).json({ message: "User Not Found" });
         }
 
-        req.user = user
-
-        next()
+        req.user = user;
+        next();
     }catch(error){
         console.log("Error in protectedRoute middleware", error.message);
         res.status(500).json({message: "Internal Server Error."})

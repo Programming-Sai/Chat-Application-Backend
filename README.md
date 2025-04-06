@@ -2,14 +2,14 @@
 
 ## Overview
 
-This is the backend for a real-time chat application built using **Node.js, Express, MongoDB**, and **Socket.io**. The API provides authentication, messaging, and real-time communication features.
+This is the backend for a real-time chat application built using **Node.js, Express, Postgres**, and **Socket.io**. The API provides authentication, messaging, and real-time communication features.
 
 ## Setup
 
 ### Prerequisites
 
 - Node.js (Latest LTS version recommended)
-- MongoDB (Local or Cloud)
+- Postgres (Neon)
 - Postman or REST Client for testing APIs
 
 ### Installation
@@ -27,8 +27,11 @@ This is the backend for a real-time chat application built using **Node.js, Expr
 
    ```sh
     PORT=
-    MONGO_DB_URL=
-    MONGODB_PASSWORD=
+    PGHOST=
+    PGDATABASE=
+    PGUSER=
+    PGPASSWORD=
+    POSTGRES_DB_URL=
     MODE=development || production
     JWT_SECRET=
     CLOUDINARY_CLOUD_NAME=
@@ -50,6 +53,7 @@ The server should now be running on `http://localhost:5000`.
 
 ```ftt
 
+
 ./Chat-Application-Backend/*
         ├─ src/*
         |       ├─ controllers/*
@@ -63,6 +67,7 @@ The server should now be running on `http://localhost:5000`.
         |       ├─ middleware/*
         |       |       └─ auth.middleware.js
         |       ├─ models/*
+        |       |       ├─ init.model.js
         |       |       ├─ message.model.js
         |       |       └─ user.model.js
         |       ├─ routes/*

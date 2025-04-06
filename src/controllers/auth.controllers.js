@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
-import User from "../models/user.model.js";
-import { cloudinary, uploadToCloudinary } from "../lib/cloudinary.js";
+import pool from "../lib/db.js";
+import { uploadToCloudinary } from "../lib/cloudinary.js";
 
 
 
@@ -16,32 +16,34 @@ export const signup = async (req, res)=>{
             return res.status(400).json({ message: "Password must be at least 6 characters long."});
         }
 
-        const user = await User.findOne({email});
-        if (user) {
-            return res.status(400).json({ message: "Email Already exists"});
-        }
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+         // Check if the user exists using SQL
+         const { rows } = await pool.query("SELECT * FROM Users WHERE email = $1", [email]);
+         const user = rows[0];
+         if (user) {
+             return res.status(400).json({ message: "Email Already exists" });
+         }
+ 
+         const salt = await bcrypt.genSalt(10);
+         const hashedPassword = await bcrypt.hash(password, salt);
+ 
+         // Insert new user into the database
+         const insertQuery = `
+             INSERT INTO Users (full_name, email, password)
+             VALUES ($1, $2, $3)
+             RETURNING *;
+         `;
+         const result = await pool.query(insertQuery, [fullName, email, hashedPassword]);
+         const newUser = result.rows[0];
 
-        const newUser = new User({
-            fullName,
-            email, 
-            password: hashedPassword,
-        })
+       // Generate token (pass newUser.id)
+        generateToken(newUser.id, res);
 
-        if (newUser){
-            generateToken(newUser._id, res);
-            await newUser.save();
-
-            res.status(201).json({
-                _id: newUser._id,
-                fullName: newUser.fullName,
-                email: newUser.email,
-                profilePic: newUser.profilePic,
-            })
-        }else{
-            res.status(400).json({ message: "Invalid User Data"});
-        }
+        res.status(201).json({
+            _id: newUser.id,
+            fullName: newUser.full_name,
+            email: newUser.email,
+            profilePic: newUser.profile_pic,
+        });
     }catch(error){
         console.log("Error in signup controller", error.message);
         res.status(500).json({message: "Internal Server Error."})
@@ -52,8 +54,10 @@ export const signup = async (req, res)=>{
 export const signin = async (req, res)=>{
     const { email, password } = req.body;
     try{
-        const user = await User.findOne({ email });
-        if (!user){
+        // Query the user from PostgreSQL
+        const { rows } = await pool.query("SELECT * FROM Users WHERE email = $1", [email]);
+        const user = rows[0];
+        if (!user) {
             return res.status(400).json({ message: "Invalid Credential provided."});
         }
         const isPasswordSame = await bcrypt.compare(password, user.password);
@@ -62,13 +66,20 @@ export const signin = async (req, res)=>{
             return res.status(400).json({ message: "Invalid Credential provided."});
         }
 
-        generateToken(user._id, res);
-        res.status(201).json({
-            _id: user._id,
-            fullName: user.fullName,
+        const token = generateToken(user.id, res);
+        const responsePayload = {
+            _id: user.id,
+            fullName: user.full_name,
             email: user.email,
-            profilePic: user.profilePic,
-        })
+            profilePic: user.profile_pic,
+        };
+        
+        if (process.env.MODE === 'development') {
+            responsePayload.token = token;
+        }
+        
+        res.status(201).json(responsePayload);
+        
     }catch(error){
         console.log("Error in signin controller", error.message);
         res.status(500).json({message: "Internal Server Error."})
@@ -90,14 +101,22 @@ export const signout = (req, res)=>{
 export const updateProfilePic = async (req, res) =>{
     try{
         const { profilePic } = req.body;
-        const userId = req.user._id;
+        const userId = req.user.id;
 
         if (!profilePic){
             return res.status(400).json({ message: "ProfilePic is Required"});
         }
 
         const uploadProfilePicResponse = await uploadToCloudinary(profilePic, "profilePics");
-        const updatedUser = await User.findByIdAndUpdate(userId, { profilePic: uploadProfilePicResponse.secure_url}, { new: true });
+        // Use an UPDATE query to update the profile picture
+        const updateQuery = `
+            UPDATE Users 
+            SET profile_pic = $1, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = $2 
+            RETURNING *;
+        `;
+        const { rows } = await pool.query(updateQuery, [uploadProfilePicResponse.secure_url, userId]);
+        const updatedUser = rows[0];  
         res.status(200).json(updatedUser);
         
     }catch(error){

@@ -1,10 +1,23 @@
-import mongoose from "mongoose";
- 
+import pkg from 'pg';
+const { Pool } = pkg;
+
+
+const pool = new Pool({
+    connectionString: process.env.POSTGRES_DB_URL,
+    ssl:{
+        rejectUnauthorized: false,
+    },
+});
+
+
 export const connectDB = async () => {
-    try {
-        const connection = await mongoose.connect(process.env.MONGO_DB_URL);
-        console.log("MongoDB Connected: ", connection.connection.host);
-    } catch (error) {
-        console.log("MongoDB Connection Error: ", error);
+    try{
+        const client = await pool.connect();
+        console.log("Postgres Connected");
+        client.release();
+    }catch(error){
+        console.log("Postgres Connection Error: ", error)
     }
-};
+}
+
+export default pool;
